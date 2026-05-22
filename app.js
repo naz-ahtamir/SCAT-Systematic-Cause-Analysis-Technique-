@@ -59,6 +59,7 @@ function saveToStorage() {
     selectedUCs:      state.selectedUCs,
     selectedRCs:      state.selectedRCs,
     selectedCAs:      state.selectedCAs,
+    selectedCAItems:  state.selectedCAItems || {},
   }));
 }
 
@@ -75,6 +76,7 @@ function loadFromStorage() {
     state.selectedUCs      = (p.selectedUCs || []).map(Number);
     state.selectedRCs      = (p.selectedRCs || []).map(Number);
     state.selectedCAs      = (p.selectedCAs || []).map(Number);
+    state.selectedCAItems  = p.selectedCAItems || {};
   } catch(e) { console.warn('Storage load error', e); }
 }
 
@@ -88,6 +90,7 @@ function confirmReset() {
   state.selectedUCs      = [];
   state.selectedRCs      = [];
   state.selectedCAs      = [];
+  state.selectedCAItems  = {};  // Reset CA items selection
   state.searchQueries    = { ua:'', uc:'', rc:'', ca:'' };
   renderApp();
 }
@@ -127,7 +130,17 @@ function validateCurrentStep() {
   } else if (id === 'root') {
     if (!state.selectedRCs.length) msg = 'Pilih minimal satu akar penyebab';
   } else if (id === 'action') {
-    if (!state.selectedCAs.length) msg = 'Pilih minimal satu area tindakan perbaikan';
+    // Check if user selected at least 1 CA with at least 1 item
+    const hasSelection = state.selectedCAs.some(caId => {
+      const caKey = 'ca' + caId;
+      const items = state.selectedCAItems && state.selectedCAItems[caKey] || [];
+      return items.length > 0;
+    });
+    
+    // Also check if any CA has items selected (even if CA not in selectedCAs)
+    const hasItemsDirectly = state.selectedCAItems && Object.values(state.selectedCAItems).some(items => items.length > 0);
+    
+    if (!hasSelection && !hasItemsDirectly) msg = 'Pilih minimal satu area dan item tindakan perbaikan';
   }
   if (msg) { showToast(msg, 'error'); return false; }
   return true;
@@ -248,11 +261,7 @@ function renderStepIntro() {
         <textarea id="f-desc" class="form-input form-textarea"
           placeholder="Deskripsikan kejadian secara singkat dan faktual...">${escHtml(I.description)}</textarea>
       </div>
-    </div>
-    <div class="info-banner">
-      <span>ℹ️</span>
-      <span>Data investigasi tersimpan otomatis di browser Anda.</span>
-    </div>
+    </div>    
   `;
 }
 
@@ -410,27 +419,39 @@ function renderStepAction() {
     <div class="step-header">
       <div class="step-tag">LANGKAH 5 / 6</div>
       <h2 class="step-title">Area Tindakan Perbaikan</h2>
-      <p class="step-desc">Pilih area tindakan perbaikan yang akan ditindaklanjuti berdasarkan akar penyebab.</p>
+      <p class="step-desc">Pilih area dan item tindakan perbaikan yang akan ditindaklanjuti berdasarkan akar penyebab.</p>
     </div>
     <div class="search-bar-full">
       <span>🔍</span>
-      <input type="text" class="search-input-full" placeholder="Cari area tindakan..."
+      <input type="text" class="search-input-full" placeholder="Cari area atau item tindakan..."
         value="${escHtml(q)}" oninput="updateSearch('ca', this.value)">
     </div>
     <div class="ca-grid">
       ${f.map(ca => {
-        const sel = state.selectedCAs.includes(ca.id);
+        // Get selected items for this CA
+        const caKey = 'ca' + ca.id;
+        const selectedItems = state.selectedCAItems && state.selectedCAItems[caKey] || [];
+        const allItems = ca.items;
+        const hasSelection = selectedItems.length > 0;
+        
         return `
-          <div class="ca-card ${sel ? 'selected' : ''}" onclick="toggleCA(${ca.id})">
-            <div class="ca-header">
-              <div class="ca-check ${sel ? 'checked' : ''}">${sel ? '✓' : ''}</div>
+          <div class="ca-card ${hasSelection ? 'selected' : ''}">
+            <div class="ca-header" onclick="toggleCA(${ca.id})">
+              <div class="ca-check ${hasSelection ? 'checked' : ''}">${hasSelection ? '✓' : ''}</div>
               <div class="ca-num">${String(ca.id).padStart(2,'0')}</div>
               <div class="ca-name">${ca.name}</div>
             </div>
-            ${sel
-              ? `<div class="ca-items">${ca.items.map(i => `<div class="ca-item">• ${i}</div>`).join('')}</div>`
-              : `<div class="ca-preview">${ca.items.slice(0,3).join(' · ')}${ca.items.length > 3 ? ' ...' : ''}</div>`
-            }
+            <div class="ca-items">
+              ${allItems.map((item, idx) => {
+                const itemKey = caKey + '.' + idx;
+                const itemSel = selectedItems.includes(itemKey);
+                return `
+                  <div class="ca-item ${itemSel ? 'selected' : ''}" onclick="toggleCAItem('${itemKey}', ${ca.id})">
+                    <div class="ca-item-check ${itemSel ? 'checked' : ''}">${itemSel ? '✓' : ''}</div>
+                    <span class="ca-item-text">${item}</span>
+                  </div>`;
+              }).join('')}
+            </div>
           </div>`;
       }).join('')}
     </div>
@@ -447,7 +468,14 @@ function renderStepReport() {
   const uaNames = state.selectedUAs.map(id => SCAT_DATA.unsafeActions[Number(id)]).filter(Boolean);
   const ucNames = state.selectedUCs.map(id => SCAT_DATA.unsafeConditions[Number(id)]).filter(Boolean);
   const rcObjs  = state.selectedRCs.map(id => SCAT_DATA.rootCauses[Number(id)]).filter(Boolean);
-  const caObjs  = state.selectedCAs.map(id => SCAT_DATA.correctiveActions[Number(id)]).filter(Boolean);
+  
+  // Get CAs that have selected items (not just from state.selectedCAs)
+  const allCAs = getCAsForRCs(state.selectedRCs);
+  const caObjs = allCAs.filter(ca => {
+    const caKey = 'ca' + ca.id;
+    const selectedItems = state.selectedCAItems && state.selectedCAItems[caKey] || [];
+    return selectedItems.length > 0;
+  });
 
   const now = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
 
@@ -580,21 +608,36 @@ function renderStepReport() {
           <div class="report-section-header">
             <span class="rs-num">04</span>
             <h3 class="rs-title">Rekomendasi Tindakan Perbaikan</h3>
-            <span class="rs-count">${caObjs.length} area dipilih</span>
+            <span class="rs-count">${caObjs.length} area dengan item dipilih</span>
           </div>
           ${caObjs.length ? `
           <div class="ca-report-grid">
-            ${caObjs.map(ca => `
+            ${caObjs.map(ca => {
+              // Get selected items for this CA
+              const caKey = 'ca' + ca.id;
+              const selectedItems = state.selectedCAItems && state.selectedCAItems[caKey] || [];
+              const allItems = ca.items;
+              
+              console.log('[DEBUG] CA', ca.id, 'selectedItems:', selectedItems, 'allItems:', allItems);
+              
+              // Show only selected items
+              const itemsToShow = selectedItems.map(key => {
+                const idx = parseInt(key.split('.')[1]);
+                return allItems[idx];
+              }).filter(Boolean);
+              
+              return `
               <div class="ca-report-card">
                 <div class="ca-report-header">
                   <span class="ca-report-num">${String(ca.id).padStart(2,'0')}</span>
                   ${ca.name}
+                  <span class="ca-item-count">${selectedItems.length}/${allItems.length}</span>
                 </div>
                 <ul class="ca-report-items">
-                  ${ca.items.map(item => `<li>${item}</li>`).join('')}
+                  ${itemsToShow.map(item => `<li>${item}</li>`).join('')}
                 </ul>
-              </div>`).join('')}
-          </div>` : '<p class="empty-msg">Tidak ada yang dipilih</p>'}
+              </div>`}).join('')}
+          </div>` : '<p class="empty-msg">Tidak ada item yang dipilih</p>'}
         </div>
 
       </div><!-- end report-body -->
@@ -631,7 +674,31 @@ function selectIncident(id) {
 function toggleUA(id) { state.selectedUAs = toggleArr(state.selectedUAs, Number(id)); saveToStorage(); renderStepContent(); }
 function toggleUC(id) { state.selectedUCs = toggleArr(state.selectedUCs, Number(id)); saveToStorage(); renderStepContent(); }
 function toggleRC(id) { state.selectedRCs = toggleArr(state.selectedRCs, Number(id)); saveToStorage(); renderStepContent(); }
-function toggleCA(id) { state.selectedCAs = toggleArr(state.selectedCAs, Number(id)); saveToStorage(); renderStepContent(); }
+function toggleCA(id) { 
+  state.selectedCAs = toggleArr(state.selectedCAs, Number(id)); 
+  saveToStorage(); 
+  renderStepContent(); 
+}
+
+function toggleCAItem(itemKey, caId) {
+  // Initialize selectedCAItems if not exists
+  if (!state.selectedCAItems) state.selectedCAItems = {};
+  
+  // Get current selected items for this CA
+  const caKey = 'ca' + caId;
+  if (!state.selectedCAItems[caKey]) state.selectedCAItems[caKey] = [];
+  
+  // Toggle the item
+  const items = state.selectedCAItems[caKey];
+  if (items.includes(itemKey)) {
+    state.selectedCAItems[caKey] = items.filter(i => i !== itemKey);
+  } else {
+    state.selectedCAItems[caKey] = [...items, itemKey];
+  }
+  
+  saveToStorage();
+  renderStepContent();
+}
 
 function toggleArr(arr, val) {
   return arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];

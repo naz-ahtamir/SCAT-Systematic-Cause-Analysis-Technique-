@@ -3,9 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SCAT Investigation Wizard</title>
+  <title>SCAT Investigation Wizard | Systematic Cause Analysis Technique untuk Investigasi Kecelakaan Kerja</title>
+  <meta name="description" content="Aplikasi web SCAT (Systematic Cause Analysis Technique) v8.1 untuk investigasi kecelakaan kerja, insiden, dan near miss. Identifikasi akar penyebab (root cause), penyebab langsung, dan rekomendasi tindakan perbaikan sesuai standar ILCI. Gratis, mudah digunakan, hasil langsung.">
+  <meta name="keywords" content="SCAT, Systematic Cause Analysis Technique, investigasi kecelakaan kerja, akar penyebab, root cause analysis, HSE, K3, keselamatan kerja, analisis kecelakaan, incident investigation, unsafe act, unsafe condition, hazard identification, risk assessment, ILCI, SCAT 8.1, form investigasi, template investigasi, safety investigation, industrial accident">
+  <meta name="author" content="SCAT Investigation Team">
+  <meta name="copyright" content="SCAT Investigation Wizard">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow">
+  <meta name="bingbot" content="index, follow">
+  <meta name="language" content="id">
+  <meta name="geo.region" content="ID">
+  <meta name="geo.placename" content="Indonesia">
+  <meta name="revisit-after" content="7 days">
+    <meta property="og:title" content="SCAT Investigation Wizard - Analisis Akar Penyebab Kecelakaan Kerja">
+  <meta property="og:description" content="Alat investigasi kecelakaan kerja berbasis Systematic Cause Analysis Technique (SCAT) v8.1. Pilih penyebab, dapatkan laporan lengkap. Cocok untuk HSE, safety officer, dan tim K3.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:site_name" content="SCAT Investigation Wizard">
+  <meta property="og:url" content="https://www.scat-investigation.com/">
+  <meta property="og:image" content="https://www.scat-investigation.com/og-image.jpg">
+  <meta property="og:image:alt" content="SCAT Investigation Wizard - Analisis Kecelakaan Kerja">
+    <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SCAT Investigation Wizard">
+  <meta name="twitter:description" content="Investigasi kecelakaan kerja dengan metode SCAT – pilih penyebab, dapatkan laporan lengkap.">
+  <meta name="twitter:image" content="https://www.scat-investigation.com/twitter-image.jpg">
+  <link rel="canonical" href="https://scat.naz-ahtamir.site/">
+    <link rel="alternate" hreflang="id" href="https://scat.naz-ahtamir.site/">  
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/webp" href="images/favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css">
 <style>
 /* ── VARIABLES ───────────────────────────────────────────────────────────── */
 :root {
@@ -246,7 +273,19 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text);
 .ca-name{font-size:.85rem;font-weight:700;color:var(--text);line-height:1.3}
 .ca-preview{font-size:.75rem;color:var(--text3);padding-left:32px;line-height:1.4}
 .ca-items{padding-left:32px}
-.ca-item{font-size:.75rem;color:var(--text2);padding:2px 0;line-height:1.4}
+.ca-item{
+  font-size:.75rem;color:var(--text2);padding:2px 0;line-height:1.4;
+  display:flex;align-items:flex-start;gap:6px;cursor:pointer;border-radius:4px;padding:4px 8px;margin:2px 0
+}
+.ca-item:hover{background:var(--surface2)}
+.ca-item.selected{background:var(--orange-lt);border:1px solid var(--orange)}
+.ca-item-check{
+  width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;transition:all var(--tr);margin-top:1px
+}
+.ca-item-check.checked{background:var(--orange);border-color:var(--orange);color:#fff}
+.ca-item-text{flex:1}
 
 /* ── NAV BUTTONS ─────────────────────────────────────────────────────────── */
 .nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)}
@@ -324,6 +363,10 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text);
 .ca-report-num{
   font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;
   color:var(--orange);background:var(--orange-lt);padding:1px 6px;border-radius:4px;flex-shrink:0
+}
+.ca-item-count{
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:600;
+  color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:10px;margin-left:auto;flex-shrink:0
 }
 .ca-report-items{padding:8px 12px 10px 22px;display:flex;flex-direction:column;gap:2px}
 .ca-report-items li{font-size:.75rem;color:var(--text2);line-height:1.4}
