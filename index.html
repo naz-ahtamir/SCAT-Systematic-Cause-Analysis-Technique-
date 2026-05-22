@@ -118,14 +118,14 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text);
 .prog-track{height:3px;background:var(--border);border-radius:99px;margin-bottom:1.5rem;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--orange-dk),var(--orange));border-radius:99px;transition:width 400ms cubic-bezier(.4,0,.2,1)}
 .prog-steps{display:flex;align-items:flex-start;justify-content:space-between}
-.step-indicator{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1}
+.step-indicator{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:1;text-align: center;}
 .step-dot{
   width:32px;height:32px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:.78rem;font-weight:700;border:2px solid var(--border2);
   background:var(--surface);color:var(--text3);transition:all var(--tr);flex-shrink:0
 }
-.step-lbl{font-size:.63rem;font-weight:600;color:var(--text3);text-align:center;transition:color var(--tr);display:none}
+.step-lbl{font-size:.63rem;font-weight:600;color:var(--text3);text-align:center !important;transition:color var(--tr);display:block !important; width: 100% !important;}
 @media(min-width:600px){.step-lbl{display:block}}
 .step-indicator.done .step-dot{background:var(--orange);border-color:var(--orange);color:#fff}
 .step-indicator.active .step-dot{border-color:var(--orange);color:var(--orange);box-shadow:0 0 0 4px var(--orange-mu)}

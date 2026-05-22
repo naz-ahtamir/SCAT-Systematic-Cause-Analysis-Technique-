@@ -218,7 +218,7 @@ function renderStepContent() {
 // ── STEP 0: INCIDENT INFO ─────────────────────────────────────────────────────
 function renderStepIntro() {
   const I = state.incidentInfo;
-  const sevOptions = ['Hampir Terjadi (Near Miss)','Ringan','Sedang','Berat','Fatal'];
+  const sevOptions = ['Near Miss','Ringan','Sedang','Berat','Fatal'];
   return `
     <div class="step-header">
       <div class="step-tag">LANGKAH 1 / 6</div>
