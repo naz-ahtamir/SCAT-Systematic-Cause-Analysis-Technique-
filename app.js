@@ -618,8 +618,6 @@ function renderStepReport() {
               const selectedItems = state.selectedCAItems && state.selectedCAItems[caKey] || [];
               const allItems = ca.items;
               
-              console.log('[DEBUG] CA', ca.id, 'selectedItems:', selectedItems, 'allItems:', allItems);
-              
               // Show only selected items
               const itemsToShow = selectedItems.map(key => {
                 const idx = parseInt(key.split('.')[1]);
