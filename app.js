@@ -165,9 +165,9 @@ function renderProgress() {
     return `
       <div class="step-indicator ${st}" onclick="jumpToStep(${i})" title="${s.label}">
         <div class="step-dot">${dot}</div>
-        <span class="step-label-text">${s.label}</span>
+        <span class="step-lbl">${s.label}</span>
       </div>
-      ${i < STEPS.length - 1 ? '<div class="step-connector"></div>' : ''}
+      ${i < STEPS.length - 1 ? '<div class="step-conn"></div>' : ''}
     `;
   }).join('');
 }
@@ -226,27 +226,27 @@ function renderStepIntro() {
       <p class="step-desc">Isi informasi dasar mengenai insiden yang akan diinvestigasi.</p>
     </div>
     <div class="form-grid">
-      <div class="form-group span-2">
+      <div class="fg span2">
         <label class="form-label">Judul Insiden <span class="req">*</span></label>
         <input id="f-title" type="text" class="form-input"
           placeholder="Contoh: Kecelakaan kerja di area produksi unit 3"
           value="${escHtml(I.title)}">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label class="form-label">Tanggal Kejadian <span class="req">*</span></label>
         <input id="f-date" type="date" class="form-input" value="${I.date}">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label class="form-label">Lokasi Kejadian</label>
         <input id="f-location" type="text" class="form-input"
           placeholder="Contoh: Area Gudang B, Lantai 2" value="${escHtml(I.location)}">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label class="form-label">Nama Investigator</label>
         <input id="f-investigator" type="text" class="form-input"
           placeholder="Nama / Tim Investigasi" value="${escHtml(I.investigator)}">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label class="form-label">Tingkat Keparahan <span class="req">*</span></label>
         <div class="severity-grid">
           ${sevOptions.map((s, i) => `
@@ -256,7 +256,7 @@ function renderStepIntro() {
             </button>`).join('')}
         </div>
       </div>
-      <div class="form-group span-2">
+      <div class="fg span2">
         <label class="form-label">Deskripsi Singkat Kejadian</label>
         <textarea id="f-desc" class="form-input form-textarea"
           placeholder="Deskripsikan kejadian secara singkat dan faktual...">${escHtml(I.description)}</textarea>
@@ -375,7 +375,7 @@ function causePill(id, name, selectedArr, toggleFn) {
 
 // ── STEP 3: ROOT CAUSES ───────────────────────────────────────────────────────
 function renderStepRoot() {
-  const rcs = getRCsForIncident(state.selectedIncident);
+  const rcs = getRCsFromDirectCauses(state.selectedUAs, state.selectedUCs);
   const q   = state.searchQueries.rc;
   const f   = rcs.filter(x => x.name.toLowerCase().includes(q.toLowerCase()));
   const personal = f.filter(x => x.category === 'personal');
